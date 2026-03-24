@@ -171,23 +171,51 @@ export default class EmotionEngine {
     _computeColor() {
         var emotions = this.getPreset().emotions;
         var hslMap = this.config.hslMapping;
+        var temperature = this.config.colorTemperature || 0.3;
 
-        // Circular mean for hue
-        var sinSum = 0, cosSum = 0, totalWeight = 0;
+        // Collect emotion entries with scores > 0
+        var entries = [];
         for (var emo in this.emotions) {
-            var conf = this.emotions[emo];
-            if (emotions[emo] && conf > 0) {
-                var hueRad = (emotions[emo].hue * Math.PI) / 180;
-                sinSum += conf * Math.sin(hueRad);
-                cosSum += conf * Math.cos(hueRad);
-                totalWeight += conf;
+            if (emotions[emo] && this.emotions[emo] > 0.01) {
+                entries.push({ name: emo, conf: this.emotions[emo], hue: emotions[emo].hue });
             }
         }
 
         var hue = 0;
-        if (totalWeight > 0) {
-            hue = (Math.atan2(sinSum, cosSum) * 180) / Math.PI;
-            if (hue < 0) hue += 360;
+        if (entries.length > 0) {
+            // Softmax sharpening with temperature
+            var maxConf = -Infinity;
+            for (var i = 0; i < entries.length; i++) {
+                if (entries[i].conf > maxConf) maxConf = entries[i].conf;
+            }
+            var expSum = 0;
+            for (var i = 0; i < entries.length; i++) {
+                entries[i].sharpened = Math.exp((entries[i].conf - maxConf) / temperature);
+                expSum += entries[i].sharpened;
+            }
+            for (var i = 0; i < entries.length; i++) {
+                entries[i].sharpened /= expSum;
+            }
+
+            // Sort by sharpened weight descending
+            entries.sort(function(a, b) { return b.sharpened - a.sharpened; });
+
+            // Dominant emotion hue
+            hue = entries[0].hue;
+
+            // Blend with 2nd emotion only if it has meaningful weight (>0.15)
+            if (entries.length > 1 && entries[1].sharpened > 0.15) {
+                var blend = entries[1].sharpened / (entries[0].sharpened + entries[1].sharpened);
+                // Lerp hue on the shorter arc
+                var h1 = entries[0].hue;
+                var h2 = entries[1].hue;
+                var diff = h2 - h1;
+                if (diff > 180) diff -= 360;
+                if (diff < -180) diff += 360;
+                hue = h1 + diff * blend;
+                if (hue < 0) hue += 360;
+                if (hue >= 360) hue -= 360;
+            }
         }
 
         var S = this._lerp(hslMap.saturation.min, hslMap.saturation.max, this.vad.A);
@@ -210,7 +238,14 @@ export default class EmotionEngine {
             } else {
                 var v = this.vad[map.dimension];
                 if (map.invert) v = 1 - v;
-                this.targets[param] = this._lerp(map.min, map.max, v);
+                var result = this._lerp(map.min, map.max, v);
+
+                // ValenceScale: further scale down by valence (negative emotion = weaker)
+                if (map.valenceScale) {
+                    result *= this._lerp(0.3, 1.0, this.vad.V);
+                }
+
+                this.targets[param] = result;
             }
         }
     }

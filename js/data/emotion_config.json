@@ -35,16 +35,19 @@
     }
   },
   "parameterMapping": {
-    "dt":               { "dimension": "V", "min": 0.005, "max": 0.033, "invert": false },
-    "cursor_size":      { "dimension": "A", "min": 30,    "max": 200,   "invert": false },
-    "mouse_force":      { "dimension": "A", "min": 20,    "max": 180,   "invert": false },
-    "viscous":          { "dimension": "V", "min": 5,     "max": 400,   "invert": true  },
-    "isViscous":        { "dimension": "V", "threshold": 0.4, "below": true },
-    "iterations_poisson": { "dimension": "D", "min": 8,   "max": 32,    "invert": false }
+    "dt":                 { "dimension": "V", "min": 0.003, "max": 0.033, "invert": false },
+    "cursor_size":        { "dimension": "A", "min": 30,    "max": 200,   "invert": false },
+    "mouse_force":        { "dimension": "A", "min": 20,    "max": 180,   "invert": false, "valenceScale": true },
+    "viscous":            { "dimension": "V", "min": 5,     "max": 500,   "invert": true  },
+    "isViscous":          { "dimension": "V", "threshold": 0.4, "below": true },
+    "BFECC":              { "dimension": "V", "threshold": 0.5, "below": false },
+    "iterations_viscous": { "dimension": "V", "min": 4,     "max": 32,    "invert": false },
+    "iterations_poisson": { "dimension": "D", "min": 8,     "max": 32,    "invert": false }
   },
   "hslMapping": {
-    "saturation": { "dimension": "A", "min": 0.20, "max": 1.00 },
-    "lightness":  { "dimension": "V", "min": 0.25, "max": 0.75 }
+    "saturation": { "dimension": "A", "min": 0.25, "max": 1.00 },
+    "lightness":  { "dimension": "V", "min": 0.25, "max": 0.70 }
   },
+  "colorTemperature": 0.3,
   "smoothing": 0.05
 }
