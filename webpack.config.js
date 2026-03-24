@@ -19,7 +19,8 @@ module.exports = {
                     {
                         loader: 'babel-loader',
                         options: {
-                            presets: [['@babel/preset-env', { modules: false }]]
+                            presets: [['@babel/preset-env', { modules: false }]],
+                            plugins: ['@babel/plugin-transform-runtime']
                         }
                     }
                 ]
@@ -27,6 +28,11 @@ module.exports = {
             {
                 test: /\.(vert|frag|obj)$/i,
                 use: 'raw-loader',
+            },
+            {
+                test: /\.json$/,
+                type: 'javascript/auto',
+                use: 'json-loader'
             }
         ],
     },
@@ -42,6 +48,14 @@ module.exports = {
         contentBase: path.join(__dirname, 'dist'),
         compress: false,
         open: true,
-        disableHostCheck: true
+        disableHostCheck: true,
+        proxy: {
+            '/api': {
+                target: 'https://router.huggingface.co',
+                pathRewrite: { '^/api': '' },
+                changeOrigin: true,
+                secure: true
+            }
+        }
     }
 };

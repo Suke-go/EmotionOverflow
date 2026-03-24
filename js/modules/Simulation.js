@@ -9,6 +9,7 @@ import Viscous from "./Viscous";
 import Divergence from "./Divergence";
 import Poisson from "./Poisson";
 import Pressure from "./Pressure";
+import EmotionEngine from "./EmotionEngine";
 
 export default class Simulation{
     constructor(props){
@@ -40,10 +41,15 @@ export default class Simulation{
             isBounce: false,
             dt: 0.014,
             isViscous: false,
-            BFECC: true
+            BFECC: true,
+            isDarkMode: false,
+            preset: "universal"
         };
 
-        const controls = new Controls(this.options);
+        // Emotion Engine
+        this.emotionEngine = new EmotionEngine();
+
+        const controls = new Controls(this.options, this.emotionEngine);
 
         this.fboSize = new THREE.Vector2();
         this.cellScale = new THREE.Vector2();
@@ -151,6 +157,10 @@ export default class Simulation{
         } else {
             this.boundarySpace.copy(this.cellScale);
         }
+
+        // Apply emotion engine parameters (smooth interpolation)
+        this.emotionEngine.setPreset(this.options.preset);
+        this.emotionEngine.applyToSimulation(this.options);
 
         this.advection.update(this.options);
 

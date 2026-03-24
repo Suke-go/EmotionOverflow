@@ -1,7 +1,7 @@
-// import * as THREE from "three";
 import Common from "./Common";
 import Output from "./Output";
 import Mouse from "./Mouse";
+import EmotionUI from "./EmotionUI";
 
 export default class Webgl{
     constructor(props){
@@ -19,6 +19,9 @@ export default class Webgl{
     init(){
         this.props.$wrapper.prepend(Common.renderer.domElement);
         this.output = new Output();
+
+        // Create EmotionUI connected to the simulation's EmotionEngine
+        this.emotionUI = new EmotionUI(this.output.simulation.emotionEngine);
     }
 
     resize(){

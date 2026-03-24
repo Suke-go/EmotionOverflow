@@ -12,12 +12,14 @@
     "@babel/preset-env": "^7.7.1",
     "babel-loader": "^8.0.6",
     "copy-webpack-plugin": "^5.0.5",
+    "json-loader": "^0.5.7",
     "raw-loader": "^3.1.0",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.9.0"
   },
   "dependencies": {
+    "@babel/runtime": "^7.29.2",
     "dat.gui": "^0.7.6",
     "terser-webpack-plugin": "^2.3.0",
     "three": "^0.111.0",

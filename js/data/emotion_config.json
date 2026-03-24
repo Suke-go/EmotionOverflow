@@ -1,0 +1,50 @@
+{
+  "presets": {
+    "universal": {
+      "label": "Universal (Jonauskaite 2020)",
+      "emotions": {
+        "joy":      { "hue": 50,  "V": 0.95, "A": 0.70, "D": 0.80 },
+        "anger":    { "hue": 0,   "V": 0.15, "A": 0.85, "D": 0.65 },
+        "sadness":  { "hue": 220, "V": 0.10, "A": 0.15, "D": 0.15 },
+        "fear":     { "hue": 270, "V": 0.10, "A": 0.80, "D": 0.10 },
+        "surprise": { "hue": 180, "V": 0.60, "A": 0.85, "D": 0.50 },
+        "disgust":  { "hue": 90,  "V": 0.10, "A": 0.55, "D": 0.45 }
+      }
+    },
+    "eastAsian": {
+      "label": "East Asian",
+      "emotions": {
+        "joy":      { "hue": 30,  "V": 0.95, "A": 0.70, "D": 0.80 },
+        "anger":    { "hue": 0,   "V": 0.15, "A": 0.85, "D": 0.65 },
+        "sadness":  { "hue": 220, "V": 0.10, "A": 0.15, "D": 0.15 },
+        "fear":     { "hue": 260, "V": 0.10, "A": 0.80, "D": 0.10 },
+        "surprise": { "hue": 60,  "V": 0.60, "A": 0.85, "D": 0.50 },
+        "disgust":  { "hue": 100, "V": 0.10, "A": 0.55, "D": 0.45 }
+      }
+    },
+    "warm": {
+      "label": "Warm Palette",
+      "emotions": {
+        "joy":      { "hue": 45,  "V": 0.95, "A": 0.70, "D": 0.80 },
+        "anger":    { "hue": 350, "V": 0.15, "A": 0.85, "D": 0.65 },
+        "sadness":  { "hue": 280, "V": 0.10, "A": 0.15, "D": 0.15 },
+        "fear":     { "hue": 310, "V": 0.10, "A": 0.80, "D": 0.10 },
+        "surprise": { "hue": 20,  "V": 0.60, "A": 0.85, "D": 0.50 },
+        "disgust":  { "hue": 70,  "V": 0.10, "A": 0.55, "D": 0.45 }
+      }
+    }
+  },
+  "parameterMapping": {
+    "dt":               { "dimension": "V", "min": 0.005, "max": 0.033, "invert": false },
+    "cursor_size":      { "dimension": "A", "min": 30,    "max": 200,   "invert": false },
+    "mouse_force":      { "dimension": "A", "min": 20,    "max": 180,   "invert": false },
+    "viscous":          { "dimension": "V", "min": 5,     "max": 400,   "invert": true  },
+    "isViscous":        { "dimension": "V", "threshold": 0.4, "below": true },
+    "iterations_poisson": { "dimension": "D", "min": 8,   "max": 32,    "invert": false }
+  },
+  "hslMapping": {
+    "saturation": { "dimension": "A", "min": 0.20, "max": 1.00 },
+    "lightness":  { "dimension": "V", "min": 0.25, "max": 0.75 }
+  },
+  "smoothing": 0.05
+}
