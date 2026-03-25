@@ -7,7 +7,11 @@ export default class EmotionEngine {
         this.lastError = null;
         this.modelType = "ekman";
         this.hfToken = null;
-        this.apiUrl = "https://api-inference.huggingface.co/models/j-hartmann/emotion-english-distilroberta-base";
+        this.apiUrls = [
+            "https://api-inference.huggingface.co/models/j-hartmann/emotion-english-distilroberta-base",
+            "https://router.huggingface.co/hf-inference/models/j-hartmann/emotion-english-distilroberta-base"
+        ];
+        this.activeApiUrl = null;
 
         // Current emotion state (Ekman confidence vector)
         this.emotions = {
@@ -86,31 +90,56 @@ export default class EmotionEngine {
 
     async _warmup() {
         console.log("[EmotionEngine] Warming up HF Inference API...");
-        var test = await this._apiCall("hello");
-        if (test) {
-            this.isReady = true;
-            console.log("[EmotionEngine] Ready (HF Inference API)");
-        } else {
-            throw new Error("API warmup failed");
+
+        // Try each URL until one works
+        for (var i = 0; i < this.apiUrls.length; i++) {
+            var url = this.apiUrls[i];
+            console.log("[EmotionEngine] Trying: " + url);
+            try {
+                var test = await this._fetchApi(url, "hello");
+                if (test) {
+                    this.activeApiUrl = url;
+                    this.isReady = true;
+                    console.log("[EmotionEngine] Ready via: " + url);
+                    return;
+                }
+            } catch (e) {
+                console.warn("[EmotionEngine] URL failed: " + url + " - " + e.message);
+            }
         }
+
+        throw new Error("All API endpoints failed. Possible CORS or network issue on this device.");
     }
 
     async _apiCall(text) {
-        var res = await fetch(this.apiUrl, {
-            method: "POST",
-            headers: {
-                "Authorization": "Bearer " + this.hfToken,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ inputs: text })
-        });
+        if (!this.activeApiUrl) {
+            throw new Error("No active API URL");
+        }
+        return this._fetchApi(this.activeApiUrl, text);
+    }
+
+    async _fetchApi(url, text) {
+        var res;
+        try {
+            res = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer " + this.hfToken,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ inputs: text })
+            });
+        } catch (networkErr) {
+            // fetch throws TypeError on CORS block or network failure
+            throw new Error("Network/CORS error: " + (networkErr.message || networkErr));
+        }
 
         if (!res.ok) {
             var err = await res.text();
             if (res.status === 503) {
                 console.log("[EmotionEngine] Model loading on server, retrying in 5s...");
                 await new Promise(function(r) { setTimeout(r, 5000); });
-                return this._apiCall(text);
+                return this._fetchApi(url, text);
             }
             throw new Error("API " + res.status + ": " + err);
         }
