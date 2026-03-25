@@ -49,20 +49,53 @@ export default class EmotionUI {
     async _initModel() {
         this.loading.style.display = "block";
         this.loading.textContent = "Loading emotion model...";
+
+        // Remove any previous error area
+        const oldErr = document.getElementById("emotion-error-area");
+        if (oldErr) oldErr.remove();
+
         await this.engine.init();
 
         if (this.engine.needsToken) {
-            // Show token input form (prompt() doesn't work on iPad)
             this.loading.style.display = "none";
             this._showTokenInput();
             return;
         }
 
         this.loading.style.display = "none";
-        this.input.placeholder = this.engine.isReady
-            ? "Type a feeling... (EN)"
-            : "Model failed to load";
-        this.input.disabled = !this.engine.isReady;
+
+        if (this.engine.isReady) {
+            this.input.placeholder = "Type a feeling... (EN)";
+            this.input.disabled = false;
+        } else {
+            this.input.placeholder = "Model failed to load";
+            this.input.disabled = true;
+            this._showErrorArea(this.engine.lastError || "Unknown error");
+        }
+    }
+
+    _showErrorArea(errorMsg) {
+        const errArea = document.createElement("div");
+        errArea.id = "emotion-error-area";
+        errArea.innerHTML = `
+            <div style="font-size:11px;color:#ff6b6b;margin-bottom:6px;word-break:break-all;">Error: ${errorMsg}</div>
+            <div style="display:flex;gap:6px;">
+                <button id="emotion-retry" style="flex:1;padding:8px;border:none;border-radius:6px;background:rgba(255,255,255,0.12);color:#fff;font-size:12px;cursor:pointer;">Retry</button>
+                <button id="emotion-reset-token" style="flex:1;padding:8px;border:none;border-radius:6px;background:rgba(255,100,100,0.2);color:#ff9999;font-size:12px;cursor:pointer;">Reset Token</button>
+            </div>
+        `;
+        errArea.style.cssText = "margin-top:8px;padding:10px;background:rgba(0,0,0,0.65);border-radius:8px;border:1px solid rgba(255,100,100,0.2);backdrop-filter:blur(12px);";
+        this.container.appendChild(errArea);
+
+        document.getElementById("emotion-retry").addEventListener("click", () => {
+            errArea.remove();
+            this._initModel();
+        });
+        document.getElementById("emotion-reset-token").addEventListener("click", () => {
+            this.engine.clearToken();
+            errArea.remove();
+            this._initModel();
+        });
     }
 
     _showTokenInput() {

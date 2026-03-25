@@ -4,6 +4,7 @@ export default class EmotionEngine {
     constructor() {
         this.isReady = false;
         this.isLoading = false;
+        this.lastError = null;
         this.modelType = "ekman";
         this.hfToken = null;
         this.apiUrl = "https://router.huggingface.co/hf-inference/models/j-hartmann/emotion-english-distilroberta-base";
@@ -34,6 +35,7 @@ export default class EmotionEngine {
         if (this.isLoading) return;
         this.isLoading = true;
         this.needsToken = false;
+        this.lastError = null;
 
         try {
             // Get HF token from global or localStorage (no prompt – breaks on iPad)
@@ -47,11 +49,20 @@ export default class EmotionEngine {
 
             await this._warmup();
         } catch (e) {
+            this.lastError = e.message || String(e);
             console.error("[EmotionEngine] Init failed:", e);
             this.isReady = false;
         }
 
         this.isLoading = false;
+    }
+
+    clearToken() {
+        localStorage.removeItem("hf_token");
+        this.hfToken = null;
+        this.isReady = false;
+        this.needsToken = true;
+        this.lastError = null;
     }
 
     async setToken(token) {
@@ -64,6 +75,7 @@ export default class EmotionEngine {
         try {
             await this._warmup();
         } catch (e) {
+            this.lastError = e.message || String(e);
             console.error("[EmotionEngine] Token verification failed:", e);
             this.isReady = false;
         }
