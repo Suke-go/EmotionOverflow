@@ -33,36 +33,54 @@ export default class EmotionEngine {
     async init() {
         if (this.isLoading) return;
         this.isLoading = true;
+        this.needsToken = false;
 
         try {
-            // Get HF token from global, localStorage, or prompt
+            // Get HF token from global or localStorage (no prompt – breaks on iPad)
             this.hfToken = window.HF_TOKEN || localStorage.getItem("hf_token");
-            if (!this.hfToken) {
-                this.hfToken = prompt("Enter your HuggingFace API token (hf_...):");
-                if (this.hfToken) {
-                    localStorage.setItem("hf_token", this.hfToken);
-                }
-            }
 
             if (!this.hfToken) {
-                throw new Error("HuggingFace token required");
+                this.needsToken = true;
+                this.isLoading = false;
+                return; // UI will show token input form
             }
 
-            // Warmup call to verify token & wake the model
-            console.log("[EmotionEngine] Warming up HF Inference API...");
-            var test = await this._apiCall("hello");
-            if (test) {
-                this.isReady = true;
-                console.log("[EmotionEngine] Ready (HF Inference API)");
-            } else {
-                throw new Error("API warmup failed");
-            }
+            await this._warmup();
         } catch (e) {
             console.error("[EmotionEngine] Init failed:", e);
             this.isReady = false;
         }
 
         this.isLoading = false;
+    }
+
+    async setToken(token) {
+        if (!token || !token.trim()) return false;
+        this.hfToken = token.trim();
+        localStorage.setItem("hf_token", this.hfToken);
+        this.needsToken = false;
+        this.isLoading = true;
+
+        try {
+            await this._warmup();
+        } catch (e) {
+            console.error("[EmotionEngine] Token verification failed:", e);
+            this.isReady = false;
+        }
+
+        this.isLoading = false;
+        return this.isReady;
+    }
+
+    async _warmup() {
+        console.log("[EmotionEngine] Warming up HF Inference API...");
+        var test = await this._apiCall("hello");
+        if (test) {
+            this.isReady = true;
+            console.log("[EmotionEngine] Ready (HF Inference API)");
+        } else {
+            throw new Error("API warmup failed");
+        }
     }
 
     async _apiCall(text) {

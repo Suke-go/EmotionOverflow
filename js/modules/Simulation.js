@@ -66,7 +66,8 @@ export default class Simulation{
     }
 
     createAllFBO(){
-        const type = ( /(iPad|iPhone|iPod)/g.test( navigator.userAgent ) ) ? THREE.HalfFloatType : THREE.FloatType;
+        const isAppleMobile = /iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        const type = isAppleMobile ? THREE.HalfFloatType : THREE.FloatType;
 
         for(let key in this.fbos){
             this.fbos[key] = new THREE.WebGLRenderTarget(

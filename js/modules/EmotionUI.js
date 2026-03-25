@@ -50,11 +50,63 @@ export default class EmotionUI {
         this.loading.style.display = "block";
         this.loading.textContent = "Loading emotion model...";
         await this.engine.init();
+
+        if (this.engine.needsToken) {
+            // Show token input form (prompt() doesn't work on iPad)
+            this.loading.style.display = "none";
+            this._showTokenInput();
+            return;
+        }
+
         this.loading.style.display = "none";
         this.input.placeholder = this.engine.isReady
             ? "Type a feeling... (EN)"
             : "Model failed to load";
         this.input.disabled = !this.engine.isReady;
+    }
+
+    _showTokenInput() {
+        const tokenArea = document.createElement("div");
+        tokenArea.id = "token-input-area";
+        tokenArea.innerHTML = `
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:6px;">Enter HuggingFace API token</div>
+            <div style="display:flex;gap:6px;">
+                <input type="password" id="hf-token-input" placeholder="hf_..." autocomplete="off"
+                    style="flex:1;padding:10px 14px;border:1px solid rgba(255,255,255,0.15);border-radius:8px;background:rgba(0,0,0,0.65);color:#fff;font-size:14px;outline:none;" />
+                <button id="hf-token-submit" style="padding:10px 16px;border:none;border-radius:8px;background:rgba(255,255,255,0.12);color:#fff;font-size:14px;cursor:pointer;">OK</button>
+            </div>
+            <div id="token-error" style="display:none;font-size:11px;color:#ff6b6b;margin-top:4px;"></div>
+        `;
+        this.container.insertBefore(tokenArea, this.container.firstChild);
+
+        const tokenInput = document.getElementById("hf-token-input");
+        const tokenSubmit = document.getElementById("hf-token-submit");
+        const tokenError = document.getElementById("token-error");
+
+        const doSubmit = async () => {
+            const token = tokenInput.value.trim();
+            if (!token) return;
+            tokenSubmit.disabled = true;
+            tokenSubmit.textContent = "...";
+            tokenError.style.display = "none";
+
+            const ok = await this.engine.setToken(token);
+            if (ok) {
+                tokenArea.remove();
+                this.input.placeholder = "Type a feeling... (EN)";
+                this.input.disabled = false;
+            } else {
+                tokenError.textContent = "Invalid token or API error. Try again.";
+                tokenError.style.display = "block";
+                tokenSubmit.disabled = false;
+                tokenSubmit.textContent = "OK";
+            }
+        };
+
+        tokenSubmit.addEventListener("click", doSubmit);
+        tokenInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") doSubmit();
+        });
     }
 
     async _onSubmit() {
