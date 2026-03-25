@@ -7,7 +7,7 @@ export default class EmotionEngine {
         this.lastError = null;
         this.modelType = "ekman";
         this.hfToken = null;
-        this.apiUrl = "https://router.huggingface.co/hf-inference/models/j-hartmann/emotion-english-distilroberta-base";
+        this.apiUrl = "https://api-inference.huggingface.co/models/j-hartmann/emotion-english-distilroberta-base";
 
         // Current emotion state (Ekman confidence vector)
         this.emotions = {

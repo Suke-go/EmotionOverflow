@@ -51,7 +51,7 @@ module.exports = {
         disableHostCheck: true,
         proxy: {
             '/api': {
-                target: 'https://router.huggingface.co',
+                target: 'https://api-inference.huggingface.co',
                 pathRewrite: { '^/api': '' },
                 changeOrigin: true,
                 secure: true
